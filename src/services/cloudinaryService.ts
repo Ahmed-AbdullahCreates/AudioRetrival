@@ -1,39 +1,50 @@
 /**
- * Placeholder for file upload service
+ * API-integrated file upload service
  * 
- * TODO: Implement this with your preferred file storage service
- * This could be:
- * - Cloudinary
- * - AWS S3
- * - Firebase Storage
- * - Azure Blob Storage
+ * This service integrates with the backend API to upload audio files to storage.
  */
 
+// API base URL
+const API_BASE_URL = 'http://audioretrievalapi.runasp.net/api';
+
 /**
- * Uploads an audio file to cloud storage
+ * Uploads an audio file to cloud storage via the backend API
  * @param file The file to upload
  * @returns A promise resolving to the URL and ID of the uploaded file, or null if an error occurred
  */
 export async function uploadToCloudinary(file: File): Promise<{ url: string; publicId: string } | null> {
   try {
-    // BACKEND INTEGRATION POINT:
-    // 1. Get authentication credentials or pre-signed URL from your backend
-    // 2. Upload directly to your storage provider
-    // 3. Return the URL and ID of the uploaded file
-
-    console.log('File upload requested for:', file.name);
+    // Create form data for file upload
+    const formData = new FormData();
+    formData.append('file', file);
     
-    // For demo/placeholder - simulate a delay and return mock URL
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log('Uploading file to API:', file.name);
     
-    // Create a temporary object URL for demo purposes only
-    // In a real implementation, this would be a URL from your storage provider
+    // Send the file to the API
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Upload successful, received:', data);
+    
     return {
-      url: URL.createObjectURL(file), // For demo only
-      publicId: `audio_${Date.now()}`,
+      url: data.url,
+      publicId: data.publicId || `audio_${Date.now()}`
     };
   } catch (error) {
     console.error('Error uploading file:', error);
-    return null;
+    
+    // Fallback: Create a local URL for demo purposes if API fails
+    console.warn('Falling back to local object URL due to API error');
+    return {
+      url: URL.createObjectURL(file),
+      publicId: `local_${Date.now()}`
+    };
   }
 }

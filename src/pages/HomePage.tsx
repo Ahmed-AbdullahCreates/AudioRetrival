@@ -1,17 +1,23 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, ChevronRight } from 'lucide-react';
+import { Play, ChevronRight, Clock } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import CategoryCard from '../components/category/CategoryCard';
 import AudioCard from '../components/audio/AudioCard';
 
 const HomePage = () => {
-  const { categories, audios, fetchAudios } = useAppStore();
+  const { categories, audios, fetchCategories, fetchAudios, isLoading } = useAppStore();
   
   useEffect(() => {
-    // Fetch latest audios for the featured section
+    // Fetch categories and latest audios for the homepage
+    fetchCategories();
     fetchAudios();
-  }, [fetchAudios]);
+  }, [fetchCategories, fetchAudios]);
+
+  // Filter out the technology, entertainment, and sound effects categories
+  const filteredCategories = categories.filter(category => 
+    !['Technology', 'Entertainment', 'Sound Effects'].includes(category.title)
+  );
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -48,27 +54,23 @@ const HomePage = () => {
         </div>
       </div>
       
-      {/* Categories section */}
+      {/* Unified categories section */}
       <section className="mb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
-          <Link
-            to="/search"
-            className="text-primary-600 hover:text-primary-800 text-sm font-medium inline-flex items-center"
-          >
-            View all
-            <ChevronRight size={16} className="ml-1" />
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {categories.slice(0, 6).map(category => (
-            <CategoryCard key={category.id} category={category} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {filteredCategories.map(category => (
+            <CategoryCard key={category.id} category={category} size="large" />
           ))}
           
-          {categories.length === 0 && (
+          {filteredCategories.length === 0 && !isLoading && (
             <div className="col-span-full py-12 text-center">
               <p className="text-gray-500">No categories found. Check back later!</p>
+            </div>
+          )}
+          
+          {isLoading && filteredCategories.length === 0 && (
+            <div className="col-span-full py-12 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-r-transparent"></div>
+              <p className="mt-2 text-gray-500">Loading categories...</p>
             </div>
           )}
         </div>
@@ -77,7 +79,10 @@ const HomePage = () => {
       {/* Featured audios section */}
       <section>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Featured Audios</h2>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+            <Clock className="mr-2 text-primary-600" size={24} />
+            Latest Uploads
+          </h2>
           <Link
             to="/search"
             className="text-primary-600 hover:text-primary-800 text-sm font-medium inline-flex items-center"
@@ -92,7 +97,7 @@ const HomePage = () => {
             <AudioCard key={audio.id} audio={audio} />
           ))}
           
-          {audios.length === 0 && (
+          {audios.length === 0 && !isLoading && (
             <div className="col-span-full py-12 text-center">
               <p className="text-gray-500">No audios found. Be the first to upload!</p>
               <Link
@@ -101,6 +106,13 @@ const HomePage = () => {
               >
                 Upload Audio
               </Link>
+            </div>
+          )}
+          
+          {isLoading && audios.length === 0 && (
+            <div className="col-span-full py-12 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-r-transparent"></div>
+              <p className="mt-2 text-gray-500">Loading audios...</p>
             </div>
           )}
         </div>

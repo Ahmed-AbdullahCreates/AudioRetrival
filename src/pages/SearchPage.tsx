@@ -3,16 +3,20 @@ import { useLocation } from 'react-router-dom';
 import { useAppStore } from '../store/appStore';
 import SearchFilters from '../components/search/SearchFilters';
 import AudioCard from '../components/audio/AudioCard';
-import { Leaf, Search, Filter, SlidersHorizontal, Tag } from 'lucide-react';
+import { Leaf, Search, Filter, SlidersHorizontal, Tag, AlertCircle, RefreshCw } from 'lucide-react';
 
 const SearchPage = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const { audios, categories, tags, fetchAudios, fetchCategories, fetchTags, isLoading } = useAppStore();
+  const { audios, categories, tags, fetchAudios, fetchCategories, fetchTags, isLoading, error, resetError } = useAppStore();
   const [isFiltering, setIsFiltering] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   
   useEffect(() => {
     setIsFiltering(true);
+    setSearchError(null);
+    resetError();
     
     const searchParams = {
       title: queryParams.get('q') || undefined,
@@ -21,14 +25,23 @@ const SearchPage = () => {
     };
     
     // Ensure categories and tags are loaded for filter display
-    if (categories.length === 0) fetchCategories();
-    if (tags.length === 0) fetchTags();
+    const loadFiltersAndSearch = async () => {
+      try {
+        if (categories.length === 0) await fetchCategories();
+        if (tags.length === 0) await fetchTags();
+        
+        await fetchAudios(searchParams);
+      } catch (err) {
+        console.error('Error during search:', err);
+        setSearchError('Failed to retrieve search results. Please try again.');
+      } finally {
+        // Add a small delay to show loading transition
+        setTimeout(() => setIsFiltering(false), 300);
+      }
+    };
     
-    fetchAudios(searchParams).finally(() => {
-      // Add a small delay to show loading transition
-      setTimeout(() => setIsFiltering(false), 300);
-    });
-  }, [location.search, fetchAudios, categories.length, tags.length, fetchCategories, fetchTags]);
+    loadFiltersAndSearch();
+  }, [location.search, fetchAudios, categories.length, tags.length, fetchCategories, fetchTags, retryCount, resetError]);
   
   const title = queryParams.get('q');
   const hasFilters = queryParams.toString().length > 0;
@@ -55,6 +68,10 @@ const SearchPage = () => {
     return parts.length > 0 ? parts.join(' ') : 'All audio files';
   };
   
+  const handleRetrySearch = () => {
+    setRetryCount(prev => prev + 1);
+  };
+  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -76,6 +93,35 @@ const SearchPage = () => {
           <div className="text-sm text-blue-800">
             <span className="font-medium">Filtered by:</span> {getSearchSummary()}
             <span className="ml-2 text-blue-600">({audios.length} results)</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Error State */}
+      {(error || searchError) && !isLoading && !isFiltering && (
+        <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                Search Error
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error || searchError}</p>
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleRetrySearch}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry Search
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

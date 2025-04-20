@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAppStore } from '../store/appStore';
 import AudioCard from '../components/audio/AudioCard';
@@ -9,12 +9,27 @@ const CategoryPage = () => {
   const { categories, audios, fetchAudios, isLoading } = useAppStore();
   
   useEffect(() => {
-    if (id) {
-      fetchAudios({ category_id: parseInt(id) });
+    if (audios.length === 0) {
+      fetchAudios();
     }
-  }, [id, fetchAudios]);
+  }, [fetchAudios, audios.length]);
   
-  const category = id ? categories.find(c => c.id === parseInt(id)) : null;
+  const category = id ? categories.find(c => 
+    c.id === parseInt(id) || c.slug === id
+  ) : null;
+  
+  // Filter audios by the current category
+  const filteredAudios = useMemo(() => {
+    if (!category) return [];
+    
+    return audios.filter(audio => {
+      // Match either by category_id or by category_title
+      return (
+        audio.category_id === category.id ||
+        (audio.category_title && audio.category_title.toLowerCase() === category.title.toLowerCase())
+      );
+    });
+  }, [audios, category]);
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -55,9 +70,9 @@ const CategoryPage = () => {
         </div>
       ) : (
         <div>
-          {audios.length > 0 ? (
+          {filteredAudios.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {audios.map(audio => (
+              {filteredAudios.map(audio => (
                 <AudioCard key={audio.id} audio={audio} />
               ))}
             </div>

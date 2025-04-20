@@ -9,11 +9,27 @@ export interface Audio {
   category_title: string;
   tags: Tag[] | null;
   user_id: string | null;
+  
+  // Additional properties for UI components
+  audioUrl?: string;
+  author?: string;
+  duration?: string;
+  fileFormat?: string;
+  fileSize?: number;
+  categories?: string[];
+  createdAt?: number | string;
 }
 
 export interface Category {
   id: number;
   title: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  coverImage?: string;
+  count?: number;
+  slug?: string;
+  featured?: boolean;
 }
 
 export interface Tag {

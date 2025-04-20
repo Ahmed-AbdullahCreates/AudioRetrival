@@ -1,6 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  safelist: [
+    // Background colors for different categories
+    'bg-blue-100', 'bg-green-100', 'bg-purple-100', 'bg-pink-100', 'bg-amber-100', 'bg-indigo-100', 'bg-teal-100', 'bg-orange-100', 'bg-gray-100',
+    // Text colors for different categories
+    'text-blue-600', 'text-green-600', 'text-purple-600', 'text-pink-600', 'text-amber-600', 'text-indigo-600', 'text-teal-600', 'text-orange-600', 'text-gray-600',
+    // Gradient overlays
+    'from-blue-900/70', 'from-green-900/70', 'from-purple-900/70', 'from-pink-900/70', 'from-amber-900/70', 'from-indigo-900/70', 'from-teal-900/70', 'from-orange-900/70', 'from-gray-900/70',
+  ],
   theme: {
     extend: {
       colors: {

@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, Loader, RefreshCw, CheckCircle, Music, AlertCircle, Headphones, X, Tag as TagIcon, BookOpen, FileText, Type, Search } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { useNavigate } from 'react-router-dom';
-import { generateTranscription, getTranscriptionErrorMessage } from '../../services/mockServices';
-import { uploadToCloudinary } from '../../services/mockServices';
+import { generateTranscription, getTranscriptionErrorMessage } from '../../services/transcriptionService';
 import type { AudioUploadFormData, Tag, Category } from '../../types';
 
 const UploadForm: React.FC = () => {
@@ -101,7 +100,8 @@ const UploadForm: React.FC = () => {
   };
 
   const handleCategorySelect = (categoryId: number) => {
-    setFormData(prev => ({ ...prev, category_id: categoryId }));
+    // First clear all previously selected tags to avoid tag accumulation
+    setFormData(prev => ({ ...prev, category_id: categoryId, tags_ids: [] }));
     setShowCategoryDropdown(false);
 
     if (errors.category_id) {
@@ -110,6 +110,65 @@ const UploadForm: React.FC = () => {
         delete newErrors.category_id;
         return newErrors;
       });
+    }
+
+    // Auto-add relevant tags based on the selected category
+    const selectedCategory = categories.find(category => category.id === categoryId);
+    if (selectedCategory) {
+      let relevantTags: Tag[] = [];
+
+      // Find relevant tags based on the category title
+      switch (selectedCategory.title.toLowerCase()) {
+        case 'music':
+          relevantTags = tags.filter(tag => 
+            ['rock', 'jazz', 'classical', 'pop', 'instrumental'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'podcasts':
+          relevantTags = tags.filter(tag => 
+            ['interview', 'talk show', 'news', 'comedy'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'audiobooks':
+          relevantTags = tags.filter(tag => 
+            ['fiction', 'non-fiction', 'fantasy', 'biography'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'quran':
+          relevantTags = tags.filter(tag => 
+            ['recitation', 'tajweed', 'translation'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'entertainment':
+          relevantTags = tags.filter(tag => 
+            ['movie clips', 'tv shows', 'gaming'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'technology':
+          relevantTags = tags.filter(tag => 
+            ['programming', 'web development', 'artificial intelligence', 'cybersecurity'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'educational':
+          relevantTags = tags.filter(tag => 
+            ['lecture', 'tutorial', 'course', 'science', 'mathematics'].includes(tag.name.toLowerCase())
+          );
+          break;
+        case 'sound effects':
+          relevantTags = tags.filter(tag => 
+            ['nature', 'urban', 'cinematic', 'ambient'].includes(tag.name.toLowerCase())
+          );
+          break;
+      }
+
+      // Add up to 3 suggested tags automatically
+      if (relevantTags.length > 0) {
+        const suggestedTagIds = relevantTags.slice(0, 3).map(tag => tag.id);
+        setFormData(prev => ({
+          ...prev,
+          tags_ids: suggestedTagIds
+        }));
+      }
     }
   };
 
@@ -215,40 +274,89 @@ const UploadForm: React.FC = () => {
       return;
     }
 
+    // Reset any previous errors
+    setErrors({});
+    setUploadProgress(0);
+
+    // Set up faster upload progress indicator
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
-        const newProgress = prev + Math.random() * 15;
+        const increment = Math.random() * 20 + 5; // 5-25% increment per update
+        const newProgress = prev + increment;
         return newProgress > 90 ? 90 : newProgress;
       });
-    }, 500);
+    }, 300); // Update progress every 300ms instead of 800ms
 
     try {
-      const uploadResult = audioFile ? await uploadToCloudinary(audioFile) : null;
-
-      if (!uploadResult) {
-        throw new Error('Failed to upload file');
+      console.log('Starting audio upload process...');
+      
+      if (!audioFile) {
+        throw new Error('No audio file selected');
       }
 
-      const formSubmitData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        formSubmitData.append(key, value.toString());
-      });
-      formSubmitData.append('url', uploadResult.url);
-
-      const result = await uploadAudio(formSubmitData);
+      // Jump to 30% immediately to show progress
+      setUploadProgress(30);
+      
+      // Create a FormData object to directly submit everything in one request
+      const submitForm = new FormData();
+      
+      // Add the audio file
+      submitForm.append('File', audioFile);
+      
+      // Add metadata using the exact field names the API expects
+      submitForm.append('Title', formData.title);
+      submitForm.append('Description', formData.description || 'No description provided');
+      submitForm.append('Transcription', formData.transcription || '');
+      
+      // For the category, send both ID and name for better compatibility
+      const selectedCategory = getSelectedCategory();
+      if (selectedCategory) {
+        // Try different formats for the category
+        submitForm.append('Category', selectedCategory.title); // Send category name instead of ID
+        submitForm.append('CategoryId', formData.category_id.toString());
+        submitForm.append('CategoryName', selectedCategory.title);
+      } else {
+        // Default to first category if none selected
+        submitForm.append('Category', 'Music');
+        submitForm.append('CategoryId', '1');
+        submitForm.append('CategoryName', 'Music');
+      }
+      
+      // Add tags as a comma-separated string
+      if (formData.tags_ids.length > 0) {
+        const tagNames = getSelectedTags().map(tag => tag.name).join(',');
+        submitForm.append('Tags', tagNames); // Send tag names instead of IDs
+        submitForm.append('TagIds', formData.tags_ids.join(','));
+      }
+      
+      console.log('Submitting audio data to API...');
+      
+      // Jump to 60% progress to make it feel faster
+      setUploadProgress(60);
+      
+      // Submit everything to the API
+      const result = await uploadAudio(submitForm);
 
       if (result.success && result.audioId) {
+        console.log('Audio successfully created with ID:', result.audioId);
         setUploadProgress(100);
 
+        // Reduce redirect time
         setTimeout(() => {
           navigate(`/audio/${result.audioId}`);
-        }, 1000);
+        }, 800); // 800ms instead of 1500ms
       } else {
-        throw new Error(result.error || 'Upload failed');
+        throw new Error(result.error || 'Failed to create audio record');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during upload process:', error);
-      setErrors(prev => ({ ...prev, submit: 'Upload failed. Please try again.' }));
+      setErrors(prev => ({ 
+        ...prev, 
+        submit: `Upload failed: ${error.message || 'Please try again later.'}` 
+      }));
+      
+      // Reset progress on error
+      setUploadProgress(0);
     } finally {
       clearInterval(progressInterval);
     }
@@ -447,12 +555,15 @@ const UploadForm: React.FC = () => {
                 <div className="flex items-center">
                   {getSelectedCategory() ? (
                     <>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-${
-                        ['blue', 'green', 'purple', 'pink', 'amber', 'indigo'][formData.category_id % 6]
-                      }-100`}>
-                        {getCategoryIcon(getSelectedCategory()!.title)}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${getCategoryColorClass(getSelectedCategory()!)}`}>
+                        {getCategoryIcon(getSelectedCategory()!)}
                       </div>
-                      <span>{getSelectedCategory()!.title}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{getSelectedCategory()!.title}</span>
+                        {getSelectedCategory()!.description && (
+                          <span className="text-xs text-gray-500 line-clamp-1">{getSelectedCategory()!.description}</span>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <span className="text-gray-500">Select a category</span>
@@ -464,27 +575,30 @@ const UploadForm: React.FC = () => {
               </button>
               
               {showCategoryDropdown && (
-                <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 py-1 max-h-60 overflow-auto animate-fade-in">
-                  {categories.map(category => (
-                    <button
-                      key={category.id}
-                      type="button"
-                      onClick={() => handleCategorySelect(category.id)}
-                      className={`flex items-center w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors ${
-                        formData.category_id === category.id ? 'bg-primary-50 text-primary-700' : ''
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-${
-                        ['blue', 'green', 'purple', 'pink', 'amber', 'indigo'][category.id % 6]
-                      }-100`}>
-                        {getCategoryIcon(category.title)}
-                      </div>
-                      <span>{category.title}</span>
-                      {formData.category_id === category.id && (
-                        <CheckCircle size={16} className="ml-auto text-primary-600" />
-                      )}
-                    </button>
-                  ))}
+                <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 py-1 max-h-80 overflow-auto animate-fade-in">
+                  <div className="px-3 py-2">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Categories
+                    </h4>
+                    {categories.map(category => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => handleCategorySelect(category.id)}
+                        className={`flex items-center w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors rounded-md ${
+                          formData.category_id === category.id ? 'bg-primary-50 text-primary-700' : ''
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${getCategoryColorClass(category)}`}>
+                          {getCategoryIcon(category)}
+                        </div>
+                        <span className={formData.category_id === category.id ? 'font-medium' : ''}>{category.title}</span>
+                        {formData.category_id === category.id && (
+                          <CheckCircle size={16} className="ml-auto text-primary-600" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -764,8 +878,8 @@ const UploadForm: React.FC = () => {
   );
 };
 
-const getCategoryIcon = (categoryTitle: string) => {
-  const title = categoryTitle.toLowerCase();
+const getCategoryIcon = (category: Category) => {
+  const title = category.title.toLowerCase();
   if (title === 'music') {
     return <Music size={16} className="text-blue-600" />;
   } else if (title === 'podcast') {
@@ -778,6 +892,22 @@ const getCategoryIcon = (categoryTitle: string) => {
     return <FileText size={16} className="text-indigo-600" />;
   } else {
     return <Music size={16} className="text-gray-600" />;
+  }
+};
+
+const getCategoryColorClass = (category: Category) => {
+  const id = category.id || 1;
+  
+  // Use explicit class names rather than string concatenation
+  // This ensures Tailwind includes these classes in the bundle
+  switch (id % 6) {
+    case 0: return "bg-blue-100";
+    case 1: return "bg-green-100";
+    case 2: return "bg-purple-100";
+    case 3: return "bg-pink-100";
+    case 4: return "bg-amber-100";
+    case 5: return "bg-indigo-100";
+    default: return "bg-gray-100";
   }
 };
 
