@@ -5,9 +5,16 @@ import { useAppStore } from '../store/appStore';
 import CategoryCard from '../components/category/CategoryCard';
 import AudioCard from '../components/audio/AudioCard';
 
-const HomePage = () => {
-  const { categories, audios, fetchCategories, fetchAudios, isLoading } = useAppStore();
-  
+const HomePage: React.FC = () => {
+  const { 
+    categories, 
+    fetchCategories, 
+    fetchAudios, 
+    audios,
+    isLoading,
+    getLatestUploads
+  } = useAppStore();
+
   useEffect(() => {
     // Fetch categories and latest audios for the homepage
     fetchCategories();
@@ -18,6 +25,9 @@ const HomePage = () => {
   const filteredCategories = categories.filter(category => 
     !['Technology', 'Entertainment', 'Sound Effects'].includes(category.title)
   );
+
+  // Get truly latest uploads
+  const latestUploads = getLatestUploads(6);
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -54,9 +64,9 @@ const HomePage = () => {
         </div>
       </div>
       
-      {/* Unified categories section */}
+      {/* Unified categories section with improved 4-category layout */}
       <section className="mb-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredCategories.map(category => (
             <CategoryCard key={category.id} category={category} size="large" />
           ))}
@@ -76,13 +86,16 @@ const HomePage = () => {
         </div>
       </section>
       
-      {/* Featured audios section */}
-      <section>
+      {/* Latest uploads section */}
+      <section className="mb -12">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Clock className="mr-2 text-primary-600" size={24} />
-            Latest Uploads
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Clock className="mr-2 text-primary-600" size={24} />
+              Latest Uploads
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">Recently added audio content</p>
+          </div>
           <Link
             to="/search"
             className="text-primary-600 hover:text-primary-800 text-sm font-medium inline-flex items-center"
@@ -91,31 +104,39 @@ const HomePage = () => {
             <ChevronRight size={16} className="ml-1" />
           </Link>
         </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {audios.slice(0, 6).map(audio => (
-            <AudioCard key={audio.id} audio={audio} />
-          ))}
-          
-          {audios.length === 0 && !isLoading && (
-            <div className="col-span-full py-12 text-center">
-              <p className="text-gray-500">No audios found. Be the first to upload!</p>
-              <Link
-                to="/upload"
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
-              >
-                Upload Audio
-              </Link>
-            </div>
-          )}
-          
-          {isLoading && audios.length === 0 && (
-            <div className="col-span-full py-12 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-r-transparent"></div>
-              <p className="mt-2 text-gray-500">Loading audios...</p>
-            </div>
-          )}
-        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="animate-pulse bg-white rounded-lg overflow-hidden shadow-md h-48">
+                <div className="h-24 bg-gray-300"></div>
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/4 mt-2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {latestUploads.map(audio => (
+              <AudioCard key={audio.id} audio={audio} />
+            ))}
+            
+            {latestUploads.length === 0 && (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500">No audio files have been uploaded yet.</p>
+                <Link
+                  to="/upload"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+                >
+                  Upload Audio
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

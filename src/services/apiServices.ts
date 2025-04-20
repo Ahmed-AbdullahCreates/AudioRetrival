@@ -43,17 +43,71 @@ export async function getAudioById(id: number) {
 
 /**
  * Search for audio with filters
+ * @param params Search parameters (title, category_id, tags_ids)
+ * @returns Promise with search results
  */
-export async function searchAudio(params: Record<string, string | number | boolean | undefined>) {
-  // Convert params to query string, filtering out undefined values
-  const queryParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined) {
-      queryParams.append(key, String(value));
-    }
-  });
+export async function searchAudio(params: Record<string, any> = {}) {
+  // Create HTTP params similar to Angular's HttpParams
+  const searchParams = new URLSearchParams();
   
-  return apiFetch<any[]>(`/audio/search?${queryParams.toString()}`);
+  // Add title as QueryString parameter if provided - exactly as in Angular
+  if (params.title) {
+    searchParams.set('QueryString', params.title);
+  } else {
+    // Angular uses 'null' as string when no query is provided
+    searchParams.set('QueryString', 'null');
+  }
+  
+  // Add category if provided - making sure it matches the exact API requirements
+  if (params.category_id !== undefined && params.category_id !== null) {
+    // Get the category name from the ID if available
+    if (typeof params.category_id === 'number' || typeof params.category_id === 'string') {
+      try {
+        // Need to convert the category_id to the actual category name/string
+        // This might involve looking it up from the categories store or using a mapping
+        const categoryName = getCategoryName(params.category_id);
+        searchParams.set('Category', categoryName);
+        console.log('Setting Category parameter:', categoryName);
+      } catch (error) {
+        console.error('Error setting category parameter:', error);
+      }
+    }
+  }
+  
+  // Add tags if provided - exactly matching Angular implementation
+  if (params.tags_ids && Array.isArray(params.tags_ids) && params.tags_ids.length > 0) {
+    params.tags_ids.forEach((tagId: number) => {
+      searchParams.append('TagsIds', tagId.toString());
+    });
+  }
+  
+  console.log('Search params:', Object.fromEntries(searchParams.entries()));
+  
+  // Make the search request
+  return apiFetch<any[]>(`/audio/search?${searchParams.toString()}`);
+}
+
+/**
+ * Helper function to get category name from ID
+ */
+function getCategoryName(categoryId: number | string): string {
+  // This is a simple mapping of category IDs to names
+  // In a real application, this would be fetched from the backend or store
+  const categoryMap: Record<string, string> = {
+    '1': 'music',
+    '2': 'podcasts',
+    '3': 'audiobooks',
+    '4': 'quran',
+    '5': 'technology',
+    '6': 'sound effects',
+    '7': 'entertainment',
+    '8': 'other'
+  };
+  
+  const id = categoryId.toString();
+  
+  // Return the mapped category name or a default if not found
+  return categoryMap[id] || 'other';
 }
 
 /**

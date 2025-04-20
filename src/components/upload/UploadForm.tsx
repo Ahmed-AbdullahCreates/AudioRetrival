@@ -149,11 +149,6 @@ const UploadForm: React.FC = () => {
             ['programming', 'web development', 'artificial intelligence', 'cybersecurity'].includes(tag.name.toLowerCase())
           );
           break;
-        case 'educational':
-          relevantTags = tags.filter(tag => 
-            ['lecture', 'tutorial', 'course', 'science', 'mathematics'].includes(tag.name.toLowerCase())
-          );
-          break;
         case 'sound effects':
           relevantTags = tags.filter(tag => 
             ['nature', 'urban', 'cinematic', 'ambient'].includes(tag.name.toLowerCase())
@@ -888,8 +883,6 @@ const getCategoryIcon = (category: Category) => {
     return <BookOpen size={16} className="text-green-600" />;
   } else if (title === 'sound effects') {
     return <Upload size={16} className="text-amber-600" />;
-  } else if (title === 'educational') {
-    return <FileText size={16} className="text-indigo-600" />;
   } else {
     return <Music size={16} className="text-gray-600" />;
   }

@@ -1,63 +1,90 @@
-import { Play, Clock, Tag, User, Music, Volume2 } from 'lucide-react';
+import { Play, Clock, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import type { Audio } from '../../types';
+import { getCategoryIcon, getCategoryColorClass } from '../../components/category/CategoryUtils';
 
 interface AudioCardProps {
   audio: Audio;
   compact?: boolean;
 }
 
+const capitalizeFirstLetter = (text: string): string => {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
 const AudioCard: React.FC<AudioCardProps> = ({ audio, compact = false }) => {
-  const { id, title, description, category_title, tags, uploaded_at, author, duration } = audio;
+  const { id, title, description, category_title, category_id, audioUrl, uploaded_at } = audio;
+  const [audioDuration, setAudioDuration] = useState<string>(audio.duration || '0:00');
   
-  const formattedDate = uploaded_at ? new Date(uploaded_at).toLocaleDateString('en-US', {
+  useEffect(() => {
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.addEventListener('loadedmetadata', () => {
+        const minutes = Math.floor(audio.duration / 60);
+        const seconds = Math.floor(audio.duration % 60);
+        setAudioDuration(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      });
+    }
+  }, [audioUrl]);
+
+  const formattedDate = new Date(uploaded_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }) : 'Unknown date';
+  });
 
-  // Truncate description if needed
   const truncatedDescription = description && description.length > 100
     ? `${description.substring(0, 100)}...`
     : description;
 
-  // Generate a simple visualization pattern (mock waveform)
-  const generateWavePattern = () => {
-    const pattern = [];
-    for (let i = 0; i < 20; i++) {
-      const height = Math.random() * 100;
-      pattern.push(height);
+  const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (audioUrl) {
+      const link = document.createElement('a');
+      link.href = audioUrl;
+      link.download = title || 'audio-file';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-    return pattern;
   };
-  
-  const wavePattern = generateWavePattern();
+
+  const categoryColors = getCategoryColorClass({ id: category_id, title: category_title });
+  const formattedCategoryTitle = category_title ? capitalizeFirstLetter(category_title) : '';
 
   if (compact) {
     return (
       <Link 
         to={`/audio/${id}`}
-        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-3 border border-gray-100 hover:border-primary-300"
+        className="group block bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-3 border border-gray-100 hover:border-primary-200 relative overflow-hidden"
       >
-        <div className="flex items-center">
-          <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary-100 flex items-center justify-center mr-3">
-            <Play size={16} className="text-primary-600 ml-1" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="flex items-center relative">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary-100 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300">
+            <Play size={16} className="text-primary-600 group-hover:text-primary-700" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
-            <div className="flex items-center text-xs text-gray-500 mt-1">
-              <Tag size={10} className="mr-1" />
-              <span className="truncate">{category_title}</span>
-              {duration && (
-                <>
-                  <span className="mx-1">•</span>
-                  <Clock size={10} className="mr-1" />
-                  <span>{duration}</span>
-                </>
-              )}
+            <h3 className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-700 transition-colors">{title}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${categoryColors}`}>
+                {getCategoryIcon({ id: category_id, title: category_title }, 12)}
+                <span className="ml-1">{formattedCategoryTitle}</span>
+              </span>
+              <span className="flex items-center text-xs text-gray-500">
+                <Clock size={12} className="mr-1" />
+                {audioDuration}
+              </span>
             </div>
           </div>
         </div>
+        <button
+          onClick={handleDownload}
+          className="absolute bottom-2 right-3 p-1.5 rounded-full bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-primary-600 transition-all duration-300"
+          title="Download audio"
+        >
+          <Download size={14} />
+        </button>
       </Link>
     );
   }
@@ -65,71 +92,44 @@ const AudioCard: React.FC<AudioCardProps> = ({ audio, compact = false }) => {
   return (
     <Link 
       to={`/audio/${id}`}
-      className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:translate-y-[-2px] border border-gray-100 hover:border-primary-200 overflow-hidden"
+      className="group block bg-white rounded-lg shadow hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] relative"
     >
-      {/* Audio visualization preview */}
-      <div className="h-12 bg-gradient-to-r from-primary-50 to-primary-100 flex items-end px-2 py-1">
-        {wavePattern.map((height, index) => (
-          <div 
-            key={index} 
-            className="w-1 mx-0.5 bg-primary-400 rounded-t"
-            style={{ height: `${height / 4}px` }}
-          ></div>
-        ))}
-        <div className="ml-auto bg-white bg-opacity-80 rounded-full p-1">
-          <Play size={12} className="text-primary-600" />
-        </div>
-      </div>
-      
-      <div className="p-4">
+      <div className="p-5">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-medium px-2.5 py-1 bg-primary-50 text-primary-700 rounded-full flex items-center">
-            <Music size={12} className="mr-1.5" />
-            {category_title}
-          </span>
+          <div className={`inline-flex items-center px-3 py-1.5 rounded-full ${categoryColors} transition-all duration-300 group-hover:scale-105`}>
+            {getCategoryIcon({ id: category_id, title: category_title }, 14)}
+            <span className="ml-1.5 text-sm font-medium">{formattedCategoryTitle}</span>
+          </div>
           <div className="flex items-center text-xs text-gray-500">
             <Clock size={12} className="mr-1" />
             {formattedDate}
           </div>
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">{title}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">{title}</h3>
         
         {truncatedDescription && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{truncatedDescription}</p>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{truncatedDescription}</p>
         )}
         
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center mr-2 group-hover:bg-primary-200">
-              <Play size={14} className="text-primary-600 ml-0.5" />
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center group/play">
+            <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center mr-3 group-hover/play:scale-110 group-hover/play:bg-primary-200 transition-all duration-300">
+              <Play size={16} className="text-primary-600 group-hover/play:text-primary-700" />
             </div>
-            <span className="text-sm font-medium text-primary-600">Play now</span>
+            <span className="text-sm font-medium text-primary-600 group-hover/play:text-primary-700">
+              {audioDuration}
+            </span>
           </div>
           
-          <div className="flex items-center space-x-3">
-            {author && (
-              <div className="flex items-center text-xs text-gray-500">
-                <User size={12} className="mr-1" />
-                <span className="truncate max-w-[80px]">{author}</span>
-              </div>
-            )}
-            
-            {tags && tags.length > 0 && (
-              <div className="flex items-center">
-                <Tag size={12} className="text-gray-400 mr-1" />
-                <div className="flex space-x-1 overflow-hidden">
-                  {tags.slice(0, 2).map((tag) => (
-                    <span key={tag.id} className="text-xs text-gray-500 truncate">
-                      {tag.name}
-                    </span>
-                  ))}
-                  {tags.length > 2 && (
-                    <span className="text-xs text-gray-500">+{tags.length - 2}</span>
-                  )}
-                </div>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              className="p-1.5 rounded-full bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-primary-600 transition-all duration-300"
+              title="Download audio"
+            >
+              <Download size={16} />
+            </button>
           </div>
         </div>
       </div>

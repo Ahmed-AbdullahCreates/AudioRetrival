@@ -18,9 +18,10 @@ interface AppState {
   fetchAudioById: (id: number) => Promise<void>;
   uploadAudio: (formData: FormData) => Promise<{ success: boolean; audioId?: number; error?: string }>;
   resetError: () => void;
+  getLatestUploads: (limit?: number) => Audio[];
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   categories: [],
   tags: [],
   audios: [],
@@ -54,18 +55,17 @@ export const useAppStore = create<AppState>((set) => ({
         { 
           id: 2, 
           title: 'Podcasts', 
-          description: 'Discover conversations, stories, and discussions on various topics',
+          description: 'Discover interesting discussions, interviews, and stories',
           color: 'purple',
           icon: 'mic',
           coverImage: 'https://images.unsplash.com/photo-1589903308904-1010c2294adc?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
           count: 28,
-          slug: 'podcasts',
-          featured: true
+          slug: 'podcasts'
         },
         { 
           id: 3, 
           title: 'Audiobooks', 
-          description: 'Listen to novels, biographies, and educational content',
+          description: 'Listen to books narrated by professional voice actors',
           color: 'amber',
           icon: 'book',
           coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
@@ -82,16 +82,6 @@ export const useAppStore = create<AppState>((set) => ({
           count: 14,
           slug: 'quran',
           featured: true
-        },
-        { 
-          id: 7, 
-          title: 'Educational', 
-          description: 'Learning materials, lectures, and educational content',
-          color: 'teal',
-          icon: 'graduation-cap',
-          coverImage: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-          count: 37,
-          slug: 'educational'
         }
       ];
       set({ categories: mockCategories });
@@ -152,15 +142,6 @@ export const useAppStore = create<AppState>((set) => ({
         { id: 31, name: 'DevOps' },
         { id: 32, name: 'Blockchain' },
         
-        // Educational tags
-        { id: 33, name: 'Lecture' },
-        { id: 34, name: 'Tutorial' },
-        { id: 35, name: 'Course' },
-        { id: 36, name: 'Language Learning' },
-        { id: 37, name: 'Mathematics' },
-        { id: 38, name: 'Science' },
-        { id: 39, name: 'History' },
-        
         // Sound Effects tags
         { id: 40, name: 'Nature' },
         { id: 41, name: 'Urban' },
@@ -189,18 +170,24 @@ export const useAppStore = create<AppState>((set) => ({
         data = await apiService.getAllAudio();
       }
       
-      // Transform response to match our interface if needed
       const formattedAudios: Audio[] = data.map((item: any) => ({
         id: item.id,
         title: item.title,
         description: item.description,
         transcription: item.transcription,
         url: item.url,
-        uploaded_at: item.uploadedAt || new Date().toISOString(),
+        uploaded_at: new Date(item.uploadedAt || Date.now()).toISOString(),
         category_id: typeof item.category === 'number' ? item.category : 1,
-        category_title: typeof item.category === 'string' ? item.category : 'Unknown',
+        category_title: typeof item.category === 'string' ? item.category : 'Music',
         tags: item.tags || [],
-        user_id: item.userId || null
+        user_id: item.userId || null,
+        categories: [typeof item.category === 'string' ? item.category : 'Music'],
+        createdAt: new Date(item.createdAt || item.uploadedAt || Date.now()).getTime(),
+        audioUrl: item.url,
+        author: item.author || 'Unknown',
+        duration: item.duration || '0:00',
+        fileFormat: item.fileFormat || 'mp3',
+        fileSize: item.fileSize || 0
       }));
       
       set({ audios: formattedAudios, isLoading: false });
@@ -212,15 +199,63 @@ export const useAppStore = create<AppState>((set) => ({
       const mockAudios: Audio[] = [
         {
           id: 1,
-          title: 'Sample Audio 1',
-          description: 'This is a sample audio description',
-          transcription: 'This is a sample transcription of the audio content.',
+          title: 'Sample Music Track',
+          description: 'A beautiful musical piece',
+          transcription: null,
           url: 'https://example.com/audio1.mp3',
           uploaded_at: new Date().toISOString(),
           category_id: 1,
           category_title: 'Music',
           tags: [{ id: 1, name: 'Rock' }],
-          user_id: null
+          user_id: null,
+          categories: ['Music'],
+          createdAt: Date.now(),
+          audioUrl: 'https://example.com/audio1.mp3'
+        },
+        {
+          id: 2,
+          title: 'Interview Podcast',
+          description: 'Interesting podcast episode',
+          transcription: null,
+          url: 'https://example.com/audio2.mp3',
+          uploaded_at: new Date().toISOString(),
+          category_id: 2,
+          category_title: 'Podcasts',
+          tags: [{ id: 9, name: 'Interview' }],
+          user_id: null,
+          categories: ['Podcasts'],
+          createdAt: Date.now(),
+          audioUrl: 'https://example.com/audio2.mp3'
+        },
+        {
+          id: 3,
+          title: 'Audiobook Sample',
+          description: 'Fantasy audiobook chapter',
+          transcription: null,
+          url: 'https://example.com/audio3.mp3',
+          uploaded_at: new Date().toISOString(),
+          category_id: 3,
+          category_title: 'Audiobooks',
+          tags: [{ id: 16, name: 'Fantasy' }],
+          user_id: null,
+          categories: ['Audiobooks'],
+          createdAt: Date.now(),
+          audioUrl: 'https://example.com/audio3.mp3'
+        },
+        {
+          id: 4,
+          title: 'Quran Recitation',
+          description: 'Beautiful Quran recitation',
+          transcription: null,
+          url: 'https://example.com/audio4.mp3',
+          uploaded_at: new Date().toISOString(),
+          category_id: 4,
+          category_title: 'Quran',
+          tags: [{ id: 19, name: 'Recitation' }],
+          user_id: null,
+          categories: ['Quran'],
+          createdAt: Date.now(),
+          audioUrl: 'https://example.com/audio4.mp3'
         }
       ];
       set({ audios: mockAudios });
@@ -315,4 +350,15 @@ export const useAppStore = create<AppState>((set) => ({
   },
 
   resetError: () => set({ error: null }),
+
+  getLatestUploads: (limit = 6) => {
+    const { audios } = get();
+    return [...audios]
+      .sort((a, b) => {
+        const dateA = new Date(a.uploaded_at || a.createdAt || 0).getTime();
+        const dateB = new Date(b.uploaded_at || b.createdAt || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, limit);
+  },
 }));

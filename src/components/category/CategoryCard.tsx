@@ -3,7 +3,7 @@ import { useAppStore } from '../../store/appStore';
 import type { Category } from '../../types';
 import { 
   Music, BookOpen, Radio, Mic, Headphones, FileAudio, 
-  Film, Cpu, GraduationCap, Volume2, Play, ArrowRight
+  Film, Cpu, Volume2, Play, ArrowRight
 } from 'lucide-react';
 
 interface CategoryCardProps {
@@ -38,7 +38,6 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, size = 'medium' }
         case 'radio': return <Radio size={iconSize} />;
         case 'film': return <Film size={iconSize} />;
         case 'cpu': return <Cpu size={iconSize} />;
-        case 'graduation-cap': return <GraduationCap size={iconSize} />;
         case 'wave': return <Volume2 size={iconSize} />;
         case 'volume2': return <Volume2 size={iconSize} />;
         default: return <FileAudio size={iconSize} />;
@@ -58,7 +57,6 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, size = 'medium' }
       case 'radio': return <Radio size={iconSize} />;
       case 'entertainment': return <Film size={iconSize} />;
       case 'technology': return <Cpu size={iconSize} />;
-      case 'educational': return <GraduationCap size={iconSize} />;
       case 'sound effects': return <Volume2 size={iconSize} />;
       default: return <FileAudio size={iconSize} />;
     }

@@ -18,11 +18,18 @@ const SearchPage = () => {
     setSearchError(null);
     resetError();
     
-    const searchParams = {
-      title: queryParams.get('q') || undefined,
-      category_id: queryParams.get('category') ? parseInt(queryParams.get('category')!) : undefined,
-      tags_ids: queryParams.get('tags') ? queryParams.get('tags')!.split(',').map(Number) : undefined,
-    };
+    // Create search params object in the exact format expected by the API
+    const searchParams: { title?: string; category_id?: number; tags_ids?: number[] } = {};
+    
+    // Only add parameters that are actually present in the URL
+    const titleParam = queryParams.get('q');
+    if (titleParam) searchParams.title = titleParam;
+    
+    const categoryParam = queryParams.get('category');
+    if (categoryParam) searchParams.category_id = parseInt(categoryParam);
+    
+    const tagsParam = queryParams.get('tags');
+    if (tagsParam) searchParams.tags_ids = tagsParam.split(',').map(Number);
     
     // Ensure categories and tags are loaded for filter display
     const loadFiltersAndSearch = async () => {
@@ -30,7 +37,13 @@ const SearchPage = () => {
         if (categories.length === 0) await fetchCategories();
         if (tags.length === 0) await fetchTags();
         
-        await fetchAudios(searchParams);
+        // If there are no search parameters on initial load, get all audios
+        if (Object.keys(searchParams).length === 0) {
+          await fetchAudios();
+        } else {
+          console.log("Searching with cleaned params:", searchParams);
+          await fetchAudios(searchParams);
+        }
       } catch (err) {
         console.error('Error during search:', err);
         setSearchError('Failed to retrieve search results. Please try again.');
@@ -132,6 +145,7 @@ const SearchPage = () => {
             <div key={item} className="bg-white rounded-lg overflow-hidden shadow">
               <div className="p-4 space-y-3">
                 <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                 <div className="h-20 bg-gray-200 rounded"></div>
                 <div className="flex justify-between">
