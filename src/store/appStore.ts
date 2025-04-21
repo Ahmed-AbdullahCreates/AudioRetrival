@@ -325,7 +325,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ isLoading: true, error: null });
       
       // Make a single API call with all the data at once
-      const response = await fetch('http://audioretrievalapi.runasp.net/api/audio', {
+      const response = await fetch('https://audioretrievalapi.runasp.net/api/audio', {
         method: 'POST',
         body: formData
       });

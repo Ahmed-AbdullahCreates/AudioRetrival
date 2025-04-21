@@ -6,7 +6,7 @@
  */
 
 // API base URL
-const API_BASE_URL = 'http://audioretrievalapi.runasp.net/api';
+const API_BASE_URL = 'https://audioretrievalapi.runasp.net/api';
 
 /**
  * Generic fetch with error handling
