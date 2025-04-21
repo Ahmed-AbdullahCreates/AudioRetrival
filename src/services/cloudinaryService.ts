@@ -5,7 +5,7 @@
  */
 
 // API base URL
-const API_BASE_URL = 'https://audioretrievalapi.runasp.net/api';
+const API_BASE_URL = 'http://audioretrievalapi.runasp.net/api';
 
 /**
  * Uploads an audio file to cloud storage via the backend API
