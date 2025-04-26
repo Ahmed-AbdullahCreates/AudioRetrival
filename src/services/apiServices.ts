@@ -5,6 +5,8 @@
  * These functions communicate with the AudioRetrieval API endpoints.
  */
 
+import { Tag } from '../types';
+
 // API base URL
 const API_BASE_URL = 'http://audioretrievalapi.runasp.net/api';
 
@@ -74,11 +76,18 @@ export async function searchAudio(params: Record<string, any> = {}) {
     }
   }
   
-  // Add tags if provided - exactly matching Angular implementation
+  // Add tags if provided - improved implementation for API compatibility
   if (params.tags_ids && Array.isArray(params.tags_ids) && params.tags_ids.length > 0) {
+    console.log('Adding tags to search params:', params.tags_ids);
+    
+    // Try both formats - the backend might expect either one
+    // Format 1: Multiple TagsIds parameters (one per tag)
     params.tags_ids.forEach((tagId: number) => {
       searchParams.append('TagsIds', tagId.toString());
     });
+    
+    // Format 2: Single comma-separated TagIds parameter
+    searchParams.set('TagsIds', params.tags_ids.join(','));
   }
   
   console.log('Search params:', Object.fromEntries(searchParams.entries()));
@@ -118,10 +127,33 @@ export async function getCategories() {
 }
 
 /**
- * Get all tags
+ * Get all tags - with force refresh option
+ * Use this to explicitly fetch the latest tags directly from the API
  */
-export async function getTags() {
-  return apiFetch<any[]>('/tags');
+export async function fetchTagsDirectly(forceRefresh = false) {
+  try {
+    // Add cache busting query parameter if forceRefresh is true
+    const endpoint = forceRefresh ? `/Tag?_=${Date.now()}` : '/Tag';
+    console.log('Making direct API request to:', `${API_BASE_URL}${endpoint}`);
+    
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Cache-Control': forceRefresh ? 'no-cache' : 'default',
+        'Pragma': forceRefresh ? 'no-cache' : 'default'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error (${response.status}): ${await response.text()}`);
+    }
+    
+    const tags = await response.json();
+    console.log('Direct tag API response:', tags);
+    return tags;
+  } catch (error) {
+    console.error('Error in fetchTagsDirectly API call:', error);
+    throw error;
+  }
 }
 
 /**

@@ -293,6 +293,23 @@ const SearchFilters = () => {
   
   const hasActiveFilters = searchParams.category_id || (searchParams.tags_ids && searchParams.tags_ids.length > 0);
   
+  // Get color for a category
+  const getCategoryColor = (category?: typeof categories[0]) => {
+    if (!category) return 'primary-500';
+    
+    // Use a safe approach with predefined color classes
+    const id = category.id || 1;
+    switch (id % 6) {
+      case 1: return 'primary-500';
+      case 2: return 'green-500';
+      case 3: return 'purple-500';
+      case 4: return 'pink-500';
+      case 5: return 'amber-500';
+      case 0: return 'indigo-500';
+      default: return 'gray-500';
+    }
+  }
+
   return (
     <div className="bg-white shadow-sm rounded-lg p-4 mb-4">
       <form onSubmit={handleSearch}>
@@ -308,7 +325,7 @@ const SearchFilters = () => {
               placeholder="Search audios..."
               value={searchParams.title || ''}
               onChange={handleInputChange}
-              onFocus={() => setShowSuggestions(searchParams.title && searchParams.title.length > 0)}
+              onFocus={() => setShowSuggestions(Boolean(searchParams.title && searchParams.title.length > 0))}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md 
                 shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
@@ -375,7 +392,7 @@ const SearchFilters = () => {
                 <div className="flex items-center">
                   {searchParams.category_id && getSelectedCategoryName() ? (
                     <>
-                      <div className={`w-2 h-2 rounded-full mr-2 bg-${categories.find(cat => cat.id === searchParams.category_id)?.color || 'gray'}-500`}></div>
+                      <div className={`w-2 h-2 rounded-full mr-2 bg-${getCategoryColor(categories.find(cat => cat.id === searchParams.category_id))}`}></div>
                       <span>{getSelectedCategoryName()}</span>
                     </>
                   ) : (

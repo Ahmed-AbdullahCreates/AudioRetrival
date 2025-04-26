@@ -92,8 +92,23 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const data = await apiService.getTags();
-      set({ tags: data, isLoading: false });
+      console.log('Fetching tags from API...');
+      // Use the new direct API call to ensure we get the latest data
+      const data = await apiService.fetchTagsDirectly(true);
+      console.log('Tags API response:', data);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        // Ensure each tag has the expected format
+        const formattedTags = data.map(tag => ({
+          id: typeof tag.id === 'number' ? tag.id : parseInt(tag.id),
+          name: tag.name || tag.title || `Tag ${tag.id}` // Handle different field names
+        }));
+        console.log('Formatted tags:', formattedTags);
+        set({ tags: formattedTags, isLoading: false });
+      } else {
+        console.warn('API returned empty or invalid tags array, using fallback data');
+        throw new Error('Invalid tags data');
+      }
     } catch (error) {
       console.error('Error fetching tags:', error);
       set({ error: 'Failed to fetch tags', isLoading: false });
