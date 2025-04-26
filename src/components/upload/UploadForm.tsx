@@ -265,6 +265,10 @@ const UploadForm: React.FC = () => {
       newErrors.audioFile = 'Audio file is required';
     }
 
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
     if (formData.category_id === 0) {
       newErrors.category_id = 'Please select a category';
     }
@@ -523,7 +527,7 @@ const UploadForm: React.FC = () => {
               className="flex items-center text-sm font-medium text-gray-700 mb-2"
             >
               <FileText size={16} className="mr-2 text-primary-500" />
-              Description
+              Description <span className="text-red-500 ml-1">*</span>
             </label>
             <textarea
               id="description"
@@ -535,11 +539,19 @@ const UploadForm: React.FC = () => {
               onBlur={() => setFocused(null)}
               placeholder="Describe your audio file in detail"
               className={`block w-full px-4 py-3 rounded-md text-base transition-all duration-200 outline-none
-                ${focused === 'description'
-                  ? 'border border-primary-300 ring-2 ring-primary-100'
-                  : 'border border-gray-300 hover:border-primary-300'
+                ${errors.description 
+                  ? 'border border-red-300 text-red-900 ring-1 ring-red-300' 
+                  : focused === 'description'
+                    ? 'border border-primary-300 ring-2 ring-primary-100'
+                    : 'border border-gray-300 hover:border-primary-300'
                 }`}
             ></textarea>
+            {errors.description && (
+              <p className="mt-2 text-sm text-red-600 flex items-center">
+                <AlertCircle size={14} className="mr-1 flex-shrink-0" />
+                {errors.description}
+              </p>
+            )}
           </div>
           
           <div>
