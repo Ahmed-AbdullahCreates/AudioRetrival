@@ -114,6 +114,28 @@ const AudioDetailPage = () => {
               </div>
             </div>
             
+            {/* Tags */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {currentAudio.tags && currentAudio.tags.length > 0 ? (
+                  currentAudio.tags.map((tag, index) => (
+                    <Link
+                      key={index}
+                      to={`/search?tags=${tag.id}`}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700"
+                    >
+                      <Tag size={14} className="mr-1" />
+                      {/* Handle both 'name' and 'title' properties for flexibility */}
+                      {tag.name || tag.title}
+                    </Link>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No tags</span>
+                )}
+              </div>
+            </div>
+
             {/* Additional Metadata */}
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">Additional Information</h3>
