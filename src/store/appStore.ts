@@ -339,28 +339,53 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      console.log('Upload API call - Sending data to API endpoint');
+      console.log('FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value instanceof File ? `File (${value.name}, ${value.size} bytes)` : value}`);
+      }
+      
       // Make a single API call with all the data at once
       const response = await fetch('http://audioretrievalapi.runasp.net/api/audio', {
         method: 'POST',
-        body: formData
+        body: formData,
+        // Don't set Content-Type header when sending FormData - browser will set it with boundary
+        headers: {
+          'Accept': 'application/json'
+        }
       });
       
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`API Error (${response.status}): ${errorData}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', response.status, errorText);
+        
+        // Try to parse error as JSON, fall back to text if not valid JSON
+        let errorMessage = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorJson.error || errorText;
+        } catch (e) {
+          // Not JSON, use the text as is
+        }
+        
+        throw new Error(`API Error (${response.status}): ${errorMessage}`);
       }
       
       const result = await response.json();
+      console.log('Upload successful, API response:', result);
       
       set({ isLoading: false });
       return { 
         success: true, 
-        audioId: result.id || 1 // Fallback ID if API doesn't return one
+        audioId: result.id || result.audioId || 1 // Handle different possible ID field names
       };
     } catch (error) {
       console.error('Error uploading audio:', error);
       set({ error: error instanceof Error ? error.message : 'Failed to upload audio', isLoading: false });
-      return { success: false, error: 'Failed to upload audio' };
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to upload audio' 
+      };
     }
   },
 

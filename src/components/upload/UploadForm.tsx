@@ -312,7 +312,10 @@ const UploadForm: React.FC = () => {
       
       // Add metadata using the exact field names the API expects
       submitForm.append('Title', formData.title);
-      submitForm.append('Description', formData.description || 'No description provided');
+      
+      // Fix for description - API requires a non-empty description
+      submitForm.append('Description', formData.description || '');
+      
       submitForm.append('Transcription', formData.transcription || '');
       
       // For the category, send both ID and name for better compatibility
@@ -329,11 +332,16 @@ const UploadForm: React.FC = () => {
         submitForm.append('CategoryName', 'Music');
       }
       
-      // Add tags as a comma-separated string
+      // Add tags correctly formatted for the API
       if (formData.tags_ids.length > 0) {
+        // Send tag names as a comma-separated string
         const tagNames = getSelectedTags().map(tag => tag.name).join(',');
-        submitForm.append('Tags', tagNames); // Send tag names instead of IDs
-        submitForm.append('TagIds', formData.tags_ids.join(','));
+        submitForm.append('Tags', tagNames);
+        
+        // Fix: Send individual TagsIds entries for each tag ID instead of comma-separated string
+        formData.tags_ids.forEach(tagId => {
+          submitForm.append('TagsIds', tagId.toString());
+        });
       }
       
       console.log('Submitting audio data to API...');
