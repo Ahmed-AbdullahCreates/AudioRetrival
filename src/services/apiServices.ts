@@ -45,20 +45,18 @@ export async function getAudioById(id: number) {
 
 /**
  * Search for audio with filters
- * @param params Search parameters (title, category_id, tags_ids)
+ * @param params Search parameters (title, category_id, tags_ids, maxResults)
  * @returns Promise with search results
  */
 export async function searchAudio(params: Record<string, any> = {}) {
   // Create HTTP params similar to Angular's HttpParams
   const searchParams = new URLSearchParams();
   
-  // Add title as QueryString parameter if provided - exactly as in Angular
+  // Add title as QueryString parameter if provided
   if (params.title) {
     searchParams.set('QueryString', params.title);
-  } else {
-    // Angular uses 'null' as string when no query is provided
-    searchParams.set('QueryString', 'null');
   }
+  // Don't set QueryString to 'null' when not provided - this was causing the filter issue
   
   // Add category if provided - making sure it matches the exact API requirements
   if (params.category_id !== undefined && params.category_id !== null) {
@@ -76,18 +74,19 @@ export async function searchAudio(params: Record<string, any> = {}) {
     }
   }
   
-  // Add tags if provided - improved implementation for API compatibility
+  // Add tags if provided - fixed implementation for API compatibility
   if (params.tags_ids && Array.isArray(params.tags_ids) && params.tags_ids.length > 0) {
     console.log('Adding tags to search params:', params.tags_ids);
     
-    // Try both formats - the backend might expect either one
-    // Format 1: Multiple TagsIds parameters (one per tag)
+    // FIX: Send individual TagsIds parameters for each tag ID as documented in Swagger
     params.tags_ids.forEach((tagId: number) => {
       searchParams.append('TagsIds', tagId.toString());
     });
-    
-    // Format 2: Single comma-separated TagIds parameter
-    searchParams.set('TagsIds', params.tags_ids.join(','));
+  }
+  
+  // Add maxResults parameter if provided
+  if (params.maxResults !== undefined && params.maxResults !== null) {
+    searchParams.set('maxResults', params.maxResults.toString());
   }
   
   console.log('Search params:', Object.fromEntries(searchParams.entries()));
@@ -237,4 +236,44 @@ export function getTranscriptionErrorMessage(error: unknown): string {
     return error.message;
   }
   return 'An unknown error occurred during transcription';
+}
+
+/**
+ * Alternative search method using the /api/Search endpoint
+ * @param query Search query string
+ * @param password Optional password if required by the API
+ * @returns Promise with search results
+ */
+export async function generalSearch(query: string, password?: string) {
+  // Create HTTP params
+  const searchParams = new URLSearchParams();
+  
+  // Add required query parameter
+  searchParams.set('query', query);
+  
+  // Add password if provided
+  if (password) {
+    searchParams.set('password', password);
+  }
+  
+  console.log('General search params:', Object.fromEntries(searchParams.entries()));
+  
+  // Make the search request
+  return apiFetch<any[]>(`/Search?${searchParams.toString()}`);
+}
+
+/**
+ * Build search index (admin functionality)
+ * @param password Required password for admin operations
+ * @returns Promise with result
+ */
+export async function buildSearchIndex(password: string) {
+  // Create HTTP params
+  const searchParams = new URLSearchParams();
+  searchParams.set('password', password);
+  
+  // Make the index building request
+  return apiFetch<any>(`/Search/build-index?${searchParams.toString()}`, {
+    method: 'PUT'
+  });
 }
