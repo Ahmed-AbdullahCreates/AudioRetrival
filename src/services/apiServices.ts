@@ -7,8 +7,9 @@
 
 import { Tag } from '../types';
 
-// API base URL
-const API_BASE_URL = 'http://audioretrievalapi.runasp.net/api';
+// Use environment variable if available, otherwise fall back to default API URL
+// Make sure to use HTTPS for production deployments
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://audioretrievalapi.runasp.net/api';
 
 /**
  * Generic fetch with error handling
