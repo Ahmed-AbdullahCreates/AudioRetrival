@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom animations for audio components */
+@keyframes waveMove {
+  0% {
+    height: var(--wave-min-height, 5px);
+  }
+  100% {
+    height: var(--wave-max-height, 20px);
+  }
+}
+
+.shadow-glow {
+  box-shadow: 0 0 5px rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+}
+
+/* Define RGB values for the primary color to use in rgba() */
+:root {
+  --primary-rgb: 59, 130, 246; /* Default blue - adjust to match your primary color */
+}
