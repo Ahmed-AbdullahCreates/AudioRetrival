@@ -82,42 +82,80 @@ Experience the application live at: [https://audio-retrival.vercel.app/](https:/
 <div align="center">
   <table>
     <tr>
-    <td align="center">
-      <a href="https://github.com/Ahmed-AbdullahCreates">
-        <img src="https://github.com/Ahmed-AbdullahCreates.png" width="100px;" alt="Ahmed Abdullah" style="border-radius:50%"/>
-        <br />
-        <b>Ahmed Abdullah</b>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/Elghrabawy">
-        <img src="https://github.com/Elghrabawy.png" width="100px;" alt="Ibrahim Alghrbawy" style="border-radius:50%"/>
-        <br />
-        <b>Ibrahim Alghrbawy</b>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/Ahmed010Ashraf">
-        <img src="https://github.com/Ahmed010Ashraf.png" width="100px;" alt="Ahmed Ashraf" style="border-radius:50%"/>
-        <br />
-        <b>Ahmed Ashraf</b>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/AhmedAyman4">
-        <img src="https://github.com/AhmedAyman4.png" width="100px;" alt="Ahmed Ayman" style="border-radius:50%"/>
-        <br />
-        <b>Ahmed Ayman</b>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/">
-        <img src="https://github.com/identicons/app/assets/default.png" width="100px;" alt="Mohamed Omara" style="border-radius:50%"/>
-        <br />
-        <b>Mohamed Omara</b>
-      </a>
+      <td align="center">
+        <a href="https://github.com/Ahmed-AbdullahCreates">
+          <svg width="100" height="100">
+            <defs>
+              <clipPath id="circleView">
+                <circle cx="50" cy="50" r="50" />
+              </clipPath>
+            </defs>
+            <image clip-path="url(#circleView)" href="https://github.com/Ahmed-AbdullahCreates.png" width="100" height="100" />
+          </svg>
+          <br />
+          <b>Ahmed Abdullah</b>
+        </a>
+      </td> 
+      <td align="center">
+        <a href="https://github.com/Elghrabawy">
+          <svg width="100" height="100">
+            <defs>
+              <clipPath id="circleView2">
+                <circle cx="50" cy="50" r="50" />
+              </clipPath>
+            </defs>
+            <image clip-path="url(#circleView2)" href="https://github.com/Elghrabawy.png" width="100" height="100" />
+          </svg>
+          <br />
+          <b>Ibrahim Alghrbawy</b>
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/Ahmed010Ashraf">
+          <svg width="100" height="100">
+            <defs>
+              <clipPath id="circleView3">
+                <circle cx="50" cy="50" r="50" />
+              </clipPath>
+            </defs>
+            <image clip-path="url(#circleView3)" href="https://github.com/Ahmed010Ashraf.png" width="100" height="100" />
+          </svg>
+          <br />
+          <b>Ahmed Ashraf</b>
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/AhmedAyman4">
+          <svg width="100" height="100">
+            <defs>
+              <clipPath id="circleView4">
+                <circle cx="50" cy="50" r="50" />
+              </clipPath>
+            </defs>
+            <image clip-path="url(#circleView4)" href="https://github.com/AhmedAyman4.png" width="100" height="100" />
+          </svg>
+          <br />
+          <b>Ahmed Ayman</b>
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/MohamedOmaraa">
+          <svg width="100" height="100">
+            <defs>
+              <clipPath id="circleView5">
+                <circle cx="50" cy="50" r="50" />
+              </clipPath>
+            </defs>
+            <image clip-path="url(#circleView5)" href="https://github.com/MohamedOmaraa.png" width="100" height="100" />
+          </svg>
+          <br />
+          <b>Mohamed Omara</b>
+        </a>
+      </td>
+    </tr>
   </table>
 </div>
+
 
 ## Features
 
@@ -127,12 +165,6 @@ Experience the application live at: [https://audio-retrival.vercel.app/](https:/
 - **Audio Playback**: Built-in audio player with playback controls
 - **Transcription**: Audio transcription capabilities for enhanced searchability
 - **Responsive Design**: Works seamlessly across different devices and screen sizes
-
-## Screenshots
-
-<div align="center">
-  <p><i>Screenshots will be added here. You can add actual screenshots of your application's key features like the home page, audio player, upload form, etc.</i></p>
-</div>
 
 ## Technology Stack
 
