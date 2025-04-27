@@ -15,13 +15,27 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, size = 'medium' }
   const { id, title, description, color, icon } = category;
   const { audios } = useAppStore();
   
-  // Calculate dynamic count based on actual audios in this category
+  // Calculate dynamic count based on actual audios in this category - with strict matching
   const dynamicCount = audios.filter(audio => {
-    // Match either by category_id or by category_title
-    return (
-      audio.category_id === id ||
-      (audio.category_title && audio.category_title.toLowerCase() === title.toLowerCase())
-    );
+    // Strict matching to ensure audio belongs only to this category
+    if (audio.category_id === id) {
+      return true;
+    }
+    
+    // Match by category_title with exact match
+    if (audio.category_title && audio.category_title.toLowerCase() === title.toLowerCase()) {
+      return true;
+    }
+    
+    // Match by categories array if it exists - with exact match
+    if (audio.categories && Array.isArray(audio.categories)) {
+      // Only return true if this is the ONLY category or matches exactly
+      return audio.categories.length === 1 && 
+             typeof audio.categories[0] === 'string' && 
+             audio.categories[0].toLowerCase() === title.toLowerCase();
+    }
+    
+    return false;
   }).length;
   
   // Map category icons based on the icon property or title

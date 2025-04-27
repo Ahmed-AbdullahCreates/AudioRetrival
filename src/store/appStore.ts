@@ -185,26 +185,67 @@ export const useAppStore = create<AppState>((set, get) => ({
         data = await apiService.getAllAudio();
       }
       
-      const formattedAudios: Audio[] = data.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        transcription: item.transcription,
-        url: item.url,
-        uploaded_at: new Date(item.uploadedAt || Date.now()).toISOString(),
-        category_id: typeof item.category === 'number' ? item.category : 1,
-        category_title: typeof item.category === 'string' ? item.category : 'Music',
-        tags: item.tags || [],
-        user_id: item.userId || null,
-        categories: [typeof item.category === 'string' ? item.category : 'Music'],
-        createdAt: new Date(item.createdAt || item.uploadedAt || Date.now()).getTime(),
-        audioUrl: item.url,
-        author: item.author || 'Unknown',
-        duration: item.duration || '0:00',
-        fileFormat: item.fileFormat || 'mp3',
-        fileSize: item.fileSize || 0
-      }));
+      // Log the raw API data to understand the format
+      console.log('Raw audio data from API (first 2 items):', 
+        data.slice(0, 2).map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          category: item.category,
+          category_id: item.category_id || item.categoryId
+        }))
+      );
       
+      const formattedAudios: Audio[] = data.map((item: any) => {
+        // Handle the lowercase category name from API
+        let categoryTitle = '';
+        if (typeof item.category === 'string') {
+          // Process string category (API returns lowercase like "music")
+          categoryTitle = item.category.charAt(0).toUpperCase() + item.category.slice(1);
+        } else if (item.categoryTitle) {
+          categoryTitle = item.categoryTitle;
+        } else if (typeof item.category === 'object' && item.category?.title) {
+          categoryTitle = item.category.title;
+        } else {
+          categoryTitle = 'Unknown';
+        }
+        
+        return {
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          transcription: item.transcription,
+          url: item.url,
+          uploaded_at: new Date(item.uploadedAt || Date.now()).toISOString(),
+          // Handle numeric category ID
+          category_id: typeof item.category === 'number' 
+            ? item.category 
+            : item.categoryId || (typeof item.category === 'object' && item.category?.id) || 
+              (categoryTitle.toLowerCase() === 'music' ? 1 :
+              categoryTitle.toLowerCase() === 'podcasts' ? 2 :
+              categoryTitle.toLowerCase() === 'audiobooks' ? 3 :
+              categoryTitle.toLowerCase() === 'quran' ? 4 : 1),
+          // Use the properly capitalized category title
+          category_title: categoryTitle,
+          tags: item.tags || [],
+          user_id: item.userId || null,
+          // Handle array of categories with proper capitalization
+          categories: item.categories 
+            ? Array.isArray(item.categories) 
+              ? item.categories.map((cat: string) => typeof cat === 'string' 
+                ? cat.charAt(0).toUpperCase() + cat.slice(1) 
+                : 'Unknown')
+              : [categoryTitle]
+            : [categoryTitle],
+          createdAt: new Date(item.createdAt || item.uploadedAt || Date.now()).getTime(),
+          audioUrl: item.url,
+          author: item.author || 'Unknown',
+          duration: item.duration || '0:00',
+          fileFormat: item.fileFormat || 'mp3',
+          fileSize: item.fileSize || 0
+        }
+      });
+      
+      console.log('Formatted audios (first 2 items):', formattedAudios.slice(0, 2));
       set({ audios: formattedAudios, isLoading: false });
     } catch (error) {
       console.error('Error fetching audios:', error);
@@ -225,7 +266,11 @@ export const useAppStore = create<AppState>((set, get) => ({
           user_id: null,
           categories: ['Music'],
           createdAt: Date.now(),
-          audioUrl: 'https://example.com/audio1.mp3'
+          audioUrl: 'https://example.com/audio1.mp3',
+          author: 'Music Artist',
+          duration: '3:45',
+          fileFormat: 'mp3',
+          fileSize: 3500000
         },
         {
           id: 2,
@@ -240,7 +285,11 @@ export const useAppStore = create<AppState>((set, get) => ({
           user_id: null,
           categories: ['Podcasts'],
           createdAt: Date.now(),
-          audioUrl: 'https://example.com/audio2.mp3'
+          audioUrl: 'https://example.com/audio2.mp3',
+          author: 'Podcast Host',
+          duration: '32:10',
+          fileFormat: 'mp3',
+          fileSize: 30500000
         },
         {
           id: 3,
@@ -255,7 +304,11 @@ export const useAppStore = create<AppState>((set, get) => ({
           user_id: null,
           categories: ['Audiobooks'],
           createdAt: Date.now(),
-          audioUrl: 'https://example.com/audio3.mp3'
+          audioUrl: 'https://example.com/audio3.mp3',
+          author: 'Audiobook Narrator',
+          duration: '15:22',
+          fileFormat: 'mp3',
+          fileSize: 15000000
         },
         {
           id: 4,
@@ -270,7 +323,11 @@ export const useAppStore = create<AppState>((set, get) => ({
           user_id: null,
           categories: ['Quran'],
           createdAt: Date.now(),
-          audioUrl: 'https://example.com/audio4.mp3'
+          audioUrl: 'https://example.com/audio4.mp3',
+          author: 'Qari',
+          duration: '10:15',
+          fileFormat: 'mp3',
+          fileSize: 9800000
         }
       ];
       set({ audios: mockAudios });
@@ -283,6 +340,19 @@ export const useAppStore = create<AppState>((set, get) => ({
       
       const data = await apiService.getAudioById(id);
       
+      // Handle the lowercase category name from API
+      let categoryTitle = '';
+      if (typeof data.category === 'string') {
+        // Process string category (API returns lowercase like "music")
+        categoryTitle = data.category.charAt(0).toUpperCase() + data.category.slice(1);
+      } else if (data.categoryTitle) {
+        categoryTitle = data.categoryTitle;
+      } else if (typeof data.category === 'object' && data.category?.title) {
+        categoryTitle = data.category.title;
+      } else {
+        categoryTitle = 'Unknown';
+      }
+      
       // Transform response to match our interface
       const formattedAudio: Audio = {
         id: data.id,
@@ -291,8 +361,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         transcription: data.transcription,
         url: data.url,
         uploaded_at: data.uploadedAt || new Date().toISOString(),
-        category_id: typeof data.category === 'number' ? data.category : 1,
-        category_title: typeof data.category === 'string' ? data.category : 'Unknown',
+        category_id: typeof data.category === 'number' 
+          ? data.category 
+          : data.categoryId || (typeof data.category === 'object' && data.category?.id) || 
+            (categoryTitle.toLowerCase() === 'music' ? 1 :
+            categoryTitle.toLowerCase() === 'podcasts' ? 2 :
+            categoryTitle.toLowerCase() === 'audiobooks' ? 3 :
+            categoryTitle.toLowerCase() === 'quran' ? 4 : 1),
+        category_title: categoryTitle,
         tags: data.tags || [],
         user_id: data.userId || null,
         // Additional properties for the UI
@@ -301,8 +377,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         duration: data.duration || '0:00',
         fileFormat: data.fileFormat || 'mp3',
         fileSize: data.fileSize || 0,
-        categories: data.category ? [typeof data.category === 'string' ? data.category : 'Unknown'] : [],
-        createdAt: data.uploadedAt || Date.now()
+        // Handle categories array
+        categories: data.categories 
+          ? Array.isArray(data.categories) 
+            ? data.categories.map((cat: string) => typeof cat === 'string' 
+              ? cat.charAt(0).toUpperCase() + cat.slice(1) 
+              : 'Unknown')
+            : [categoryTitle]
+          : [categoryTitle],
+        createdAt: data.uploadedAt ? new Date(data.uploadedAt).getTime() : Date.now()
       };
       
       set({ currentAudio: formattedAudio, isLoading: false });
@@ -318,8 +401,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         transcription: 'This is a sample transcription of the audio content.',
         url: 'https://example.com/audio.mp3',
         uploaded_at: new Date().toISOString(),
-        category_id: 1,
-        category_title: 'Music',
+        // Assign a more specific category based on ID to avoid everything being Music
+        category_id: (id % 4) + 1,
+        category_title: ['Music', 'Podcasts', 'Audiobooks', 'Quran'][(id % 4)],
         tags: [{ id: 1, name: 'Rock' }],
         user_id: null,
         audioUrl: 'https://example.com/audio.mp3',
@@ -327,7 +411,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         duration: '3:45',
         fileFormat: 'mp3',
         fileSize: 3500000,
-        categories: ['Music'],
+        categories: [['Music', 'Podcasts', 'Audiobooks', 'Quran'][(id % 4)]],
         createdAt: Date.now()
       };
       

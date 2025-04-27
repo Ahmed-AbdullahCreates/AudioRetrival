@@ -18,16 +18,62 @@ const CategoryPage = () => {
     c.id === parseInt(id) || c.slug === id
   ) : null;
   
-  // Filter audios by the current category
+  // Debug the incoming data
+  useEffect(() => {
+    if (category && audios.length > 0) {
+      console.log('Current category:', category);
+      console.log('Sample audios:', audios.slice(0, 3).map(a => ({
+        id: a.id,
+        title: a.title,
+        category_id: a.category_id,
+        category_title: a.category_title,
+        categories: a.categories
+      })));
+    }
+  }, [category, audios]);
+  
+  // Filter audios by the current category with case-insensitive matching
   const filteredAudios = useMemo(() => {
     if (!category) return [];
     
+    // Check if this is the Music category (case insensitive)
+    const isMusicCategory = category.title.toLowerCase() === 'music';
+    // Get category title in lowercase for comparison
+    const categoryTitleLower = category.title.toLowerCase();
+    
     return audios.filter(audio => {
-      // Match either by category_id or by category_title
-      return (
-        audio.category_id === category.id ||
-        (audio.category_title && audio.category_title.toLowerCase() === category.title.toLowerCase())
-      );
+      // Match by explicit category ID first (most reliable)
+      if (audio.category_id === category.id) {
+        return true;
+      }
+      
+      // Match by case-insensitive category_title
+      if (audio.category_title && audio.category_title.toLowerCase() === categoryTitleLower) {
+        return true;
+      }
+      
+      // Match by categories array with case-insensitive comparison
+      if (audio.categories && Array.isArray(audio.categories)) {
+        return audio.categories.some(cat => 
+          typeof cat === 'string' && cat.toLowerCase() === categoryTitleLower
+        );
+      }
+      
+      // Special case for Music - check for related music tags
+      if (isMusicCategory) {
+        // Check if audio has music-related tags
+        if (audio.tags && Array.isArray(audio.tags) && audio.tags.some(tag => 
+          tag.name && ['rock', 'jazz', 'classical', 'hip-hop', 'pop', 'electronic', 'folk', 'instrumental']
+            .includes(tag.name.toLowerCase())
+        )) {
+          // If it has music tags AND either no category or a generic category
+          if (!audio.category_title || audio.category_title.toLowerCase() === 'unknown') {
+            return true;
+          }
+        }
+      }
+      
+      return false;
     });
   }, [audios, category]);
   

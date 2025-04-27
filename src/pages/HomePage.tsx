@@ -87,7 +87,7 @@ const HomePage: React.FC = () => {
       </section>
       
       {/* Latest uploads section */}
-      <section className="mb -12">
+      <section className="mb-12">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 flex items-center">
