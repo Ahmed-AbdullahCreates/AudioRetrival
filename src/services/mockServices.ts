@@ -7,7 +7,7 @@
 
 // Use environment variable if available, otherwise fall back to default API URL
 // Make sure to use HTTPS for production deployments
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://audioretrievalapi.runasp.net/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://audioretrievalapi.runasp.net/api';
 
 /**
  * Uploads a file to the server's storage service

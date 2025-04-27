@@ -23,7 +23,6 @@
   - [Live Demo](#live-demo)
   - [Team Members](#team-members)
   - [Features](#features)
-  - [Screenshots](#screenshots)
   - [Technology Stack](#technology-stack)
     - [Frontend](#frontend)
     - [Backend](#backend)
