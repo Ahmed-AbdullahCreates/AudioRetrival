@@ -1,4 +1,4 @@
-# Distributed Audio File System
+# Audio Search and Retrieval System
 
 <div align="center">
 
@@ -10,9 +10,7 @@
 
 </div>
 
-## 📑 Table of Contents
-- [Distributed Audio File System](#distributed-audio-file-system)
-  - [📑 Table of Contents](#-table-of-contents)
+## 📑 Table of Contents 
   - [System Overview](#system-overview)
     - [Architecture Components](#architecture-components)
       - [Client Machine](#client-machine)
@@ -35,7 +33,6 @@
     - [Installation](#installation)
   - [Project Structure](#project-structure)
   - [Contributing](#contributing)
-  - [License](#license)
   - [Acknowledgments](#acknowledgments)
 
 ## System Overview
@@ -72,7 +69,14 @@ The Distributed Audio File System is a comprehensive solution for storing, retri
 3. **Upload Audio File**: Audio files are sent to Cloudinary for secure storage
 4. **Retrieve Audio File**: Audio content is streamed from Cloudinary to the client
 
-## Live Demo
+
+## Live Demo 
+
+> ⚠️ **Note**: Currently, the live demo APIs are experiencing issues. While we work on resolving this, you can:
+> - [Run the project locally](#getting-started) to explore all features
+> - [Contribute](#contributing) if you have a solution to improve API stability
+
+
 
 Experience the application live at: [https://audio-retrival.vercel.app/](https://audio-retrival.vercel.app/)
 
@@ -83,72 +87,32 @@ Experience the application live at: [https://audio-retrival.vercel.app/](https:/
     <tr>
       <td align="center">
         <a href="https://github.com/Ahmed-AbdullahCreates">
-          <svg width="100" height="100">
-            <defs>
-              <clipPath id="circleView">
-                <circle cx="50" cy="50" r="50" />
-              </clipPath>
-            </defs>
-            <image clip-path="url(#circleView)" href="https://github.com/Ahmed-AbdullahCreates.png" width="100" height="100" />
-          </svg>
-          <br />
-          <b>Ahmed Abdullah</b>
+          <img src="https://github.com/Ahmed-AbdullahCreates.png" width="100" height="100" style="border-radius:50%;" alt="Ahmed Abdullah" /><br />
+          <sub><b>Ahmed Abdullah</b></sub>
         </a>
       </td> 
       <td align="center">
         <a href="https://github.com/Elghrabawy">
-          <svg width="100" height="100">
-            <defs>
-              <clipPath id="circleView2">
-                <circle cx="50" cy="50" r="50" />
-              </clipPath>
-            </defs>
-            <image clip-path="url(#circleView2)" href="https://github.com/Elghrabawy.png" width="100" height="100" />
-          </svg>
-          <br />
-          <b>Ibrahim Alghrbawy</b>
+          <img src="https://github.com/Elghrabawy.png" width="100" height="100" style="border-radius:50%;" alt="Ibrahim Alghrbawy" /><br />
+          <sub><b>Ibrahim Alghrbawy</b></sub>
         </a>
       </td>
       <td align="center">
         <a href="https://github.com/Ahmed010Ashraf">
-          <svg width="100" height="100">
-            <defs>
-              <clipPath id="circleView3">
-                <circle cx="50" cy="50" r="50" />
-              </clipPath>
-            </defs>
-            <image clip-path="url(#circleView3)" href="https://github.com/Ahmed010Ashraf.png" width="100" height="100" />
-          </svg>
-          <br />
-          <b>Ahmed Ashraf</b>
+          <img src="https://github.com/Ahmed010Ashraf.png" width="100" height="100" style="border-radius:50%;" alt="Ahmed Ashraf" /><br />
+          <sub><b>Ahmed Ashraf</b></sub>
         </a>
       </td>
       <td align="center">
         <a href="https://github.com/AhmedAyman4">
-          <svg width="100" height="100">
-            <defs>
-              <clipPath id="circleView4">
-                <circle cx="50" cy="50" r="50" />
-              </clipPath>
-            </defs>
-            <image clip-path="url(#circleView4)" href="https://github.com/AhmedAyman4.png" width="100" height="100" />
-          </svg>
-          <br />
-          <b>Ahmed Ayman</b>
+          <img src="https://github.com/AhmedAyman4.png" width="100" height="100" style="border-radius:50%;" alt="Ahmed Ayman" /><br />
+          <sub><b>Ahmed Ayman</b></sub>
         </a>
       </td>
       <td align="center">
         <a href="https://github.com/MohamedOmaraa">
-          <svg width="100" height="100">
-            <defs>
-              <clipPath id="circleView5">
-                <circle cx="50" cy="50" r="50" />
-              </clipPath>
-            </defs>
-            <image clip-path="url(#circleView5)" href="https://github.com/MohamedOmaraa.png" width="100" height="100" />
-          </svg>
-          <br />
-          <b>Mohamed Omara</b>
+          <img src="https://github.com/MohamedOmaraa.png" width="100" height="100" style="border-radius:50%;" alt="Mohamed Omara" /><br />
+          <sub><b>Mohamed Omara</b></sub>
         </a>
       </td>
     </tr>
@@ -181,7 +145,7 @@ Experience the application live at: [https://audio-retrival.vercel.app/](https:/
 - **Cloud Storage**: Cloudinary for optimized audio file storage and delivery
 - **Search Indexing**: For fast and efficient content retrieval
 
-## API Documentation
+## API Documentation 
 
 ### Audio Endpoints
 
@@ -205,6 +169,8 @@ Experience the application live at: [https://audio-retrival.vercel.app/](https:/
 | Endpoint | Method | Description | Parameters |
 |----------|--------|-------------|------------|
 | `/api/search` | GET | Search for audio | `query`, `filters` |
+
+For detailed API implementation and backend source code, visit our [Audio Retrieval API Repository](https://github.com/Elghrabawy/Audio_Retrieval_API).
 
 ## Getting Started
 
@@ -286,11 +252,7 @@ We welcome contributions to improve the Distributed Audio File System!
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-Please ensure your code follows our coding standards and includes appropriate tests.
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
